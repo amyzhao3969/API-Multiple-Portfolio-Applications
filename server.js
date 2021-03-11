@@ -38,6 +38,9 @@ app.get("/urlShortenerMicroservice", function (req, res) {
   res.sendFile(__dirname + '/views/urlshortner.html');
 });
 
+app.get("/exercisetracker", function (req, res) {
+  res.sendFile(__dirname + '/views/exercisetracker.html');
+});
 
 app.get("/api/hello", function (req, res) {
   console.log({greeting: "hello API"});
@@ -147,6 +150,46 @@ app.get("/api/shorturl/:suffix", function(req, res) {
   })
 })
 
+
+//exercise tracker
+//build a schema and model to store username and id
+var ExerciseUser = mongoose.model("ExerciseUser", new Schema({
+  _id: String,
+  username: String
+}))
+
+app.post("/api/exercise/new-user", (req, res) => {
+  let username = req.body['username'];
+  let userID = mongoose.Types.ObjectId();
+
+  let exerciseUser = new ExerciseUser({
+    username: username,
+    _id: userID
+  })
+
+  exerciseUser.save(function(err, doc) {
+    if (err) return console.error(err);
+    res.json({
+      "username": exerciseUser.username,
+      "_id": exerciseUser._id
+    });
+  })
+});
+
+app.get("/api/exercise/users", function(req, res) {
+  let userInput = req.params.username;
+  console.log(req.params.username);
+  user.find({
+    username: userInput
+  }, function (err, docs) {
+    if (err) return console.log(err);
+    //res.redirect(newURL.original_url);
+  }).then(function(foundUser) {
+    console.log(foundUser[0]);
+    res.json("hello");
+  })
+});
+  
 // listen for requests :)
 var listener = app.listen(process.env.PORT || 3000, function () {
   console.log('Your app is listening on port ' + listener.address().port);

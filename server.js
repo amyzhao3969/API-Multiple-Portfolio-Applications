@@ -8,7 +8,6 @@ var express = require('express');
 const path = require('path');
 var mongo = require("mongodb");
 var mongoose = require("mongoose");
-var moment = require("moment");
 var bodyParser = require('body-parser');
 const shortid = require('shortid');
 var app = express();

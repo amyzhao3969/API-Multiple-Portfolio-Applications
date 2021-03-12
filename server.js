@@ -8,6 +8,7 @@ var express = require('express');
 const path = require('path');
 var mongo = require("mongodb");
 var mongoose = require("mongoose");
+var moment = require("moment");
 var bodyParser = require('body-parser');
 const shortid = require('shortid');
 var app = express();
@@ -156,43 +157,85 @@ app.get("/api/shorturl/:suffix", function(req, res) {
 
 //exercise tracker
 //build a schema and model to store username and id
-var ExerciseUser = mongoose.model("ExerciseUser", new Schema({
-  _id: String,
-  username: String
-}))
+let exerciseSessionSchema = new mongoose.Schema({
+  date: String,
+  duration: {type: Number, required: true},
+  description: {type: String, required: true}
+})
+
+let userSchema = new mongoose.Schema({
+  username: {type: String, required: true},
+  log: [exerciseSessionSchema]
+})
+
+var Session = mongoose.model("Session", exerciseSessionSchema)
+var ExerciseUser = mongoose.model("ExerciseUser", userSchema)
+
 
 app.post("/api/exercise/new-user", (req, res) => {
   let username = req.body['username'];
-  let userID = mongoose.Types.ObjectId();
-
   let exerciseUser = new ExerciseUser({
-    username: username,
-    _id: userID
-  })
+    username: username
+  });
 
-  exerciseUser.save(function(err, doc) {
+  exerciseUser.save(function(err, savedUser) {
     if (err) return console.error(err);
     res.json({
-      "username": exerciseUser.username,
-      "_id": exerciseUser._id
+      "username": savedUser.username,
+      "_id": savedUser.id
     });
   })
 });
 
-app.get("/api/exercise/users", function(req, res) {
-  let userInput = req.params.username;
-  console.log(req.params.username);
-  user.find({
-    username: userInput
-  }, function (err, docs) {
-    if (err) return console.log(err);
-    //res.redirect(newURL.original_url);
-  }).then(function(foundUser) {
-    console.log(foundUser[0]);
-    res.json("hello");
+app.get("/api/exercise/users", (req, res) => {
+  ExerciseUser.find({}, (err, arrayOfUsers) => {
+    res.json(arrayOfUsers)
   })
 });
-  
+
+app.post("/api/exercise/add", (req, res) => {
+  let newSession = new Session({
+    description: req.body.description,
+    duration: req.body.duration,
+    date: req.body.date
+  })
+
+  if(newSession.date === "") {
+    newSession.date = new Date().toISOString().substring(0, 10)
+  }
+
+  ExerciseUser.findByIdAndUpdate(
+    req.body.userId,
+    {$push: {log: newSession}},
+    {new: true},
+    (error, updatedUser) => {
+      if(!error) {
+      let resObj = {}
+      resObj['_id'] = updatedUser.id
+      resObj['username'] = updatedUser.username
+      resObj['date'] = new Date(newSession.date).toDateString()
+      resObj['description'] = newSession.description
+      resObj['duration'] = newSession.duration
+      res.json(resObj)
+    }
+  })
+
+});
+
+app.get("/api/exercise/log", (req, res) => {
+  ExerciseUser.findById(
+    req.query.userId,
+    (error, result) => {
+      if(!error) {
+        let resObjLogs = result
+        //resObjLogs = resObjLogs.toJSON()
+        resObjLogs['count'] = result.log.length
+        res.json(resObjLogs)
+      }
+    }
+  );
+  })
+
 // listen for requests :)
 var listener = app.listen(process.env.PORT || 3000, function () {
   console.log('Your app is listening on port ' + listener.address().port);

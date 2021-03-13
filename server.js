@@ -227,15 +227,45 @@ app.get("/api/exercise/log", (req, res) => {
     (error, result) => {
       if(!error) {
         let resObjLogs = result
+        if(req.query.from || req.query.to) {
+          let fromDate = new Date(0) //create a date object to the oldest time
+          let toDate = new Date() //create a date object with current time
+
+          if(req.query.from) {
+            fromDate = new Date(req.query.from)
+            console.log(fromDate)
+          }
+
+          if(req.query.to) {
+            toDate = new Date(req.query.to)
+          }
+
+          fromDate = fromDate.getTime()
+          console.log(fromDate)
+          toDate = toDate.getTime()
+          console.log(toDate)
+
+          resObjLogs.log = resObjLogs.log.filter((session) => {
+            let sessionDate = new Date(session.date).getTime()
+            //console.log(session) - this is the logs of sessions
+            //console.log(sessionDate) - to convert them to number of milliseconds 
+            return sessionDate >= fromDate && sessionDate <= toDate
+          })
+        }
+
+        if(req.query.limit){
+          resObjLogs.log = resObjLogs.log.slice(0, req.query.limit)
+          console.log(req.query.limit)
+        }
+
         resObjLogs = resObjLogs.toJSON()
         resObjLogs['count'] = resObjLogs.log.length
         res.json(resObjLogs)
-        console.log(resObjLogs)
-        console.log(resObjLogs.log.length)
       }
     }
-  );
-  })
+  )
+});
+
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT || 3000, function () {

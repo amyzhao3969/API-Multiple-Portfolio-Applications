@@ -271,21 +271,14 @@ app.get("/api/exercise/log", (req, res) => {
 });
 
 //file metadata
-var upload = multer({ dest: '/tmp/uploads/' })
-app.post('/api/fileanalyse', upload.single('upfile'), (req, res, next) => {
-  
-  const file = req.file
-  if (!file) {
-    const error = new Error('Please upload a file')
-    error.httpStatusCode = 400
-    return next(error)
-  }
-  res.json({
+app.post('/filemetadata/api/fileanalyse', multer().single('upfile'), (req, res) => {
+  var resp = {
     "name": req.file.originalname,
-    "size": req.file.size,
-    "type": req.file.mimetype
-  })
-  
+    "type": req.file.mimetype,
+    "size": req.file.size
+  };
+  console.log(resp);
+  res.json(resp);
 })
 
 // listen for requests :)

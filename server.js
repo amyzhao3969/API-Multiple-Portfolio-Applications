@@ -227,9 +227,11 @@ app.get("/api/exercise/log", (req, res) => {
     (error, result) => {
       if(!error) {
         let resObjLogs = result
-        //resObjLogs = resObjLogs.toJSON()
-        resObjLogs['count'] = result.log.length
+        resObjLogs = resObjLogs.toJSON()
+        resObjLogs['count'] = resObjLogs.log.length
         res.json(resObjLogs)
+        console.log(resObjLogs)
+        console.log(resObjLogs.log.length)
       }
     }
   );

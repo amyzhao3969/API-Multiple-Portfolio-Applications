@@ -3,13 +3,13 @@
 
 // init project
 require('dotenv').config();
-const cool = require('cool-ascii-faces');
 var express = require('express');
 const path = require('path');
 var mongo = require("mongodb");
 var mongoose = require("mongoose");
 var bodyParser = require('body-parser');
 const shortid = require('shortid');
+var multer  = require('multer')
 var app = express();
 var port = process.env.PORT || 3000;
 
@@ -43,6 +43,10 @@ app.get("/urlShortenerMicroservice", function (req, res) {
 
 app.get("/exercisetracker", function (req, res) {
   res.sendFile(__dirname + '/views/exercisetracker.html');
+});
+
+app.get("/filemetadata", function (req, res) {
+  res.sendFile(__dirname + '/views/filemetadata.html');
 });
 
 app.get("/api/hello", function (req, res) {
@@ -266,6 +270,23 @@ app.get("/api/exercise/log", (req, res) => {
   )
 });
 
+//file metadata
+var upload = multer({ dest: '/tmp/uploads/' })
+app.post('/api/fileanalyse', upload.single('upfile'), (req, res, next) => {
+  
+  const file = req.file
+  if (!file) {
+    const error = new Error('Please upload a file')
+    error.httpStatusCode = 400
+    return next(error)
+  }
+  res.json({
+    "name": req.file.originalname,
+    "size": req.file.size,
+    "type": req.file.mimetype
+  })
+  
+})
 
 // listen for requests :)
 var listener = app.listen(process.env.PORT || 3000, function () {

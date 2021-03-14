@@ -271,7 +271,7 @@ app.get("/api/exercise/log", (req, res) => {
 });
 
 //file metadata
-app.post('/filemetadata/api/fileanalyse', multer().single('upfile'), (req, res) => {
+app.post('/api/fileanalyse', multer().single('upfile'), (req, res) => {
   var resp = {
     "name": req.file.originalname,
     "type": req.file.mimetype,
